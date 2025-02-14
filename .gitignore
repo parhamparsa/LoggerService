@@ -1,0 +1,8 @@
+# build
+bin
+
+# postgresql data files
+pgdata
+
+# testing
+coverage.txt

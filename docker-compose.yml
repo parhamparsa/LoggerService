@@ -1,0 +1,74 @@
+# specifing the version of the compose file specification is deprecated https://docs.docker.com/compose/compose-file/#compose-file
+#
+# if your docker engine is incompatible uncomment the below version specificaion
+# https://docs.docker.com/compose/compose-file/compose-versioning/#compatibility-matrix
+# version: 3.8
+
+services:
+  api:
+    build: .
+    ports:
+      - "8080:8080"
+    depends_on:
+      - migrator
+    env_file: .env
+    environment:
+      - DB_HOST=database
+    command: "api"
+
+  consumer:
+    build: .
+    depends_on:
+      - migrator
+    env_file: .env
+    environment:
+      - DB_HOST=database
+    command: "consume"
+
+  database:
+    image: postgres:16
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready --username=talon"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    env_file: .env
+    environment:
+      - POSTGRES_USER=talon
+      - POSTGRES_PASSWORD=talon.one.8080
+      - POSTGRES_DB=talon
+  
+  migrator:
+    build: 
+      context: .
+      dockerfile: ./Dockerfile.migrator
+    depends_on:
+      - database
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./migrations:/migrations/
+    environment:
+      GOOSE_DRIVER: postgres
+      GOOSE_MIGRATION_DIR: ./migrations
+      GOOSE_DBSTRING: "postgres://talon:talon.one.8080@database:5432/talon?sslmode=disable"
+
+  nats:
+    image: nats:latest
+    ports:
+      - "4222:4222"    # NATS client connections
+      - "6222:6222"    # NATS cluster connections
+      - "8222:8222"    # HTTP monitoring interface (optional)
+    volumes:
+      - ./nats-data:/data  # Persist NATS data (optional)
+    environment:
+      - NATS_SERVER_NAME=nats-server
+      - NATS_JETSTREAM=true  # Enable JetStream
+    restart: always
+    command: "--jetstream"
+
+volumes:
+  pgdata:

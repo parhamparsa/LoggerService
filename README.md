@@ -1,8 +1,3 @@
-# Talon.One: Backend interview task
-
-This project contains the Talon.One backend interview task where we have a Go application with a simplified 
-version of an HTTP server to process HTTP requests.
-
 ## The task
 
 **Requirements**:

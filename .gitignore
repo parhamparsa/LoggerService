@@ -6,3 +6,7 @@ pgdata
 
 # testing
 coverage.txt
+
+/vendor/
+
+/.idea/

@@ -32,7 +32,7 @@ This solution not only meets the immediate requirement but also provides scalabi
 
 2- Send test requests using the following command:
 
-`for i in {0..10000}; do curl -X GET http://localhost:8080/health; done`
+`for i in {0..10000}; do curl -X GET http://localhost:8080/health; done` or use make file `make data`
 
 3- Verify the data in the database to ensure the requests have been logged correctly.
 

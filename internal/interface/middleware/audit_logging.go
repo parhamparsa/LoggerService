@@ -26,7 +26,12 @@ func NewAuditLogging(producer queue.Interface) *AuditLogging {
 func (al AuditLogging) Logging(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Log Request
-		body, _ := io.ReadAll(r.Body)
+		body, err := io.ReadAll(r.Body)
+		if err != nil {
+			zap.L().Error("Failed to read request body", zap.Error(err))
+			return
+		}
+
 		r.Body = io.NopCloser(bytes.NewBuffer(body)) // Restore body for next handler
 
 		// Capture response using a custom ResponseWriter.
@@ -50,9 +55,14 @@ func (al AuditLogging) Logging(next http.Handler) http.Handler {
 			RequestBody:          string(body),
 			Response:             responseRecorder.body.String(),
 		}
-		auditLogEntryBytes, _ := json.Marshal(auditLogEntry)
+		auditLogEntryBytes, err := json.Marshal(auditLogEntry)
+		if err != nil {
+			zap.L().Error("Failed to marshal audit log entry", zap.Error(err))
+			return
+		}
 		if err := al.Producer.Produce(context.Background(), auditLogEntryBytes); err != nil {
 			zap.L().Error("Failed to produce audit log entry", zap.String("error", err.Error()))
+			return
 		}
 
 		zap.L().Info("The response from the audit log entry ",

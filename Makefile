@@ -48,3 +48,12 @@ docker_up:
 help : Makefile
 	@sed -n 's/^##//p' $<
 	@echo ""
+
+.PHONY: data
+data:
+	for i in {0..1}; do curl -X GET  http://localhost:8080/health; done
+
+
+.PHONY: consumer_stop
+consumer_stop:
+	docker compose consumer stop

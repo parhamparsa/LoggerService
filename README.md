@@ -1,4 +1,4 @@
-## The task
+## Logger Service
 
 **Requirements**:
 - You need to implement a solution to record the **access logs** for the service.
